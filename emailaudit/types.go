@@ -8,27 +8,27 @@ import (
 
 const timeFormat = "2006-01-02 15:04"
 
-// Monitor Monitor
-type Monitor struct {
+// MailMonitor MailMonitor
+type MailMonitor struct {
 	DomainName     string
 	SourceUserName string
 	DestUserName   string
 	BeginDate      *time.Time
 	EndDate        *time.Time
-	MonitorLevels  MonitorLevels
+	MonitorLevels  MailMonitorLevels
 }
 
-// MonitorLevels MonitorLevels
-type MonitorLevels struct {
-	IncomingEmail MonitorLevel
-	OutgoingEmail MonitorLevel
-	Draft         MonitorLevel
-	Chat          MonitorLevel
+// MailMonitorLevels MailMonitorLevels
+type MailMonitorLevels struct {
+	IncomingEmail MailMonitorLevel
+	OutgoingEmail MailMonitorLevel
+	Draft         MailMonitorLevel
+	Chat          MailMonitorLevel
 }
 
-// NewMonitor returns new Monitor
-func NewMonitor(domainName string, sourceUserName string, destUserName string, endDate *time.Time, monitorLevels MonitorLevels) Monitor {
-	m := Monitor{
+// NewMailMonitor returns new MailMonitor
+func NewMailMonitor(domainName string, sourceUserName string, destUserName string, endDate *time.Time, monitorLevels MailMonitorLevels) MailMonitor {
+	m := MailMonitor{
 		DomainName:     domainName,
 		SourceUserName: sourceUserName,
 		DestUserName:   destUserName,
@@ -38,7 +38,7 @@ func NewMonitor(domainName string, sourceUserName string, destUserName string, e
 	return m
 }
 
-func (req *Monitor) monitorWriteProperties() monitorWriteProperties {
+func (req *MailMonitor) monitorWriteProperties() monitorWriteProperties {
 	m := monitorWriteProperties{}
 	m.addProperty("destUserName", req.DestUserName)
 	m.addProperty("endDate", req.EndDate)
@@ -61,17 +61,17 @@ func (req *Monitor) monitorWriteProperties() monitorWriteProperties {
 	return m
 }
 
-func (req *Monitor) toXML() []byte {
+func (req *MailMonitor) toXML() []byte {
 	x, _ := xml.MarshalIndent(req.monitorWriteProperties(), "", "  ")
 	return x
 }
 
-func monitorFromXML(data []byte) (*Monitor, error) {
+func monitorFromXML(data []byte) (*MailMonitor, error) {
 	var v monitorReadProperties
 	if err := xml.Unmarshal(data, &v); err != nil {
 		return nil, err
 	}
-	m := Monitor{
+	m := MailMonitor{
 		MonitorLevels: v.toMonitorLevels(),
 	}
 	for _, p := range v.AppProperties {
@@ -84,10 +84,10 @@ func monitorFromXML(data []byte) (*Monitor, error) {
 	return &m, nil
 }
 
-func (m monitorReadProperties) toMonitorLevels() MonitorLevels {
-	ret := MonitorLevels{}
+func (m monitorReadProperties) toMonitorLevels() MailMonitorLevels {
+	ret := MailMonitorLevels{}
 	for _, p := range m.AppProperties {
-		l := MonitorLevel(p.Value)
+		l := MailMonitorLevel(p.Value)
 		switch p.Name {
 		case "incomingEmailMonitorLevel":
 			ret.IncomingEmail = l

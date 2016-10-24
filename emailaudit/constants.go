@@ -5,12 +5,12 @@ const (
 	FeedComplianceAuditScope = "https://apps-apis.google.com/a/feeds/compliance/audit/"
 )
 
-// MonitorLevel MonitorLevel
-type MonitorLevel string
+// MailMonitorLevel MailMonitorLevel
+type MailMonitorLevel string
 
 const (
 	// HeaderOnlyLevel HEADER_ONLY
-	HeaderOnlyLevel MonitorLevel = "HEADER_ONLY"
+	HeaderOnlyLevel MailMonitorLevel = "HEADER_ONLY"
 	// FullMessageLevel FULL_MESSAGE
-	FullMessageLevel MonitorLevel = "FULL_MESSAGE"
+	FullMessageLevel MailMonitorLevel = "FULL_MESSAGE"
 )

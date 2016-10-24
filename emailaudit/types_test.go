@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-func TestMonitorToXML(t *testing.T) {
+func TestMailMonitorToXML(t *testing.T) {
 	loc, _ := time.LoadLocation("Asia/Tokyo")
 	beginDate := time.Date(2016, time.September, 1, 0, 0, 0, 0, loc)
 	endDate := time.Date(2016, time.October, 30, 23, 59, 59, 0, loc)
-	m := NewMonitor("littleapps.co.jp", "src", "dest", &endDate, MonitorLevels{
+	m := NewMailMonitor("littleapps.co.jp", "src", "dest", &endDate, MailMonitorLevels{
 		IncomingEmail: FullMessageLevel,
 		OutgoingEmail: FullMessageLevel,
 		Draft:         FullMessageLevel,
@@ -32,7 +32,7 @@ func TestMonitorToXML(t *testing.T) {
 	}
 }
 
-func TestMonitorFromXML(t *testing.T) {
+func TestMailMonitorFromXML(t *testing.T) {
 	x := `<entry xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
     <id>https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata</id>
     <updated>2009-08-20T00:28:57.319Z</updated>
@@ -48,8 +48,8 @@ func TestMonitorFromXML(t *testing.T) {
   </entry>`
 	m, err := monitorFromXML([]byte(x))
 	for _, test := range []struct {
-		actual   MonitorLevel
-		expected MonitorLevel
+		actual   MailMonitorLevel
+		expected MailMonitorLevel
 	}{
 		{m.MonitorLevels.Chat, FullMessageLevel},
 		{m.MonitorLevels.Draft, FullMessageLevel},
