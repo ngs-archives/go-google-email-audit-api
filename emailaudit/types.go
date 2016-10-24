@@ -8,27 +8,27 @@ import (
 
 const timeFormat = "2006-01-02 15:04"
 
-// MonitorRequest MonitorRequest
-type MonitorRequest struct {
+// Monitor Monitor
+type Monitor struct {
 	DomainName     string
 	SourceUserName string
 	DestUserName   string
 	BeginDate      *time.Time
 	EndDate        *time.Time
-	MonitorLevels  MonitorRequestMonitorLevels
+	MonitorLevels  MonitorLevels
 }
 
-// MonitorRequestMonitorLevels MonitorRequestMonitorLevels
-type MonitorRequestMonitorLevels struct {
+// MonitorLevels MonitorLevels
+type MonitorLevels struct {
 	IncomingEmail MonitorLevel
 	OutgoingEmail MonitorLevel
 	Draft         MonitorLevel
 	Chat          MonitorLevel
 }
 
-// NewMonitorRequest returns new MonitorRequest
-func NewMonitorRequest(domainName string, sourceUserName string, destUserName string, endDate *time.Time, monitorLevels MonitorRequestMonitorLevels) MonitorRequest {
-	m := MonitorRequest{
+// NewMonitor returns new Monitor
+func NewMonitor(domainName string, sourceUserName string, destUserName string, endDate *time.Time, monitorLevels MonitorLevels) Monitor {
+	m := Monitor{
 		DomainName:     domainName,
 		SourceUserName: sourceUserName,
 		DestUserName:   destUserName,
@@ -38,8 +38,8 @@ func NewMonitorRequest(domainName string, sourceUserName string, destUserName st
 	return m
 }
 
-func (req *MonitorRequest) monitorProperties() monitorProperties {
-	m := monitorProperties{}
+func (req *Monitor) monitorWriteProperties() monitorWriteProperties {
+	m := monitorWriteProperties{}
 	m.addProperty("destUserName", req.DestUserName)
 	m.addProperty("endDate", req.EndDate)
 
@@ -58,25 +58,71 @@ func (req *MonitorRequest) monitorProperties() monitorProperties {
 	if req.BeginDate != nil {
 		m.addProperty("beginDate", req.BeginDate)
 	}
-
 	return m
 }
 
-// ToXML convert monitor request to xml
-func (req *MonitorRequest) ToXML() []byte {
-	x, _ := xml.MarshalIndent(req.monitorProperties(), "", "  ")
+func (req *Monitor) toXML() []byte {
+	x, _ := xml.MarshalIndent(req.monitorWriteProperties(), "", "  ")
 	return x
 }
 
-type monitorProperties struct {
-	XMLName       xml.Name      `xml:"http://www.w3.org/2005/Atom entry"`
+func monitorFromXML(data []byte) (*Monitor, error) {
+	var v monitorReadProperties
+	if err := xml.Unmarshal(data, &v); err != nil {
+		return nil, err
+	}
+	m := Monitor{
+		MonitorLevels: v.toMonitorLevels(),
+	}
+	for _, p := range v.AppProperties {
+		switch p.Name {
+		case "destUserName":
+			m.DestUserName = p.Value
+			break
+		}
+	}
+	return &m, nil
+}
+
+func (m monitorReadProperties) toMonitorLevels() MonitorLevels {
+	ret := MonitorLevels{}
+	for _, p := range m.AppProperties {
+		l := MonitorLevel(p.Value)
+		switch p.Name {
+		case "incomingEmailMonitorLevel":
+			ret.IncomingEmail = l
+			break
+		case "outgoingEmailMonitorLevel":
+			ret.OutgoingEmail = l
+			break
+		case "draftMonitorLevel":
+			ret.Draft = l
+			break
+		case "chatMonitorLevel":
+			ret.Chat = l
+			break
+		}
+	}
+	return ret
+}
+
+type monitorReadProperties struct {
+	XMLName       xml.Name      `xml:"http://www.w3.org/2005/Atom entry,omitempty"`
+	ID            string        `xml:"id,omitempty"`
+	Updated       *time.Time    `xml:"updated,omitempty"`
+	AppProperties []appProperty `xml:"http://schemas.google.com/apps/2006 property"`
+	Links         []link
+}
+
+type monitorWriteProperties struct {
+	XMLName       xml.Name      `xml:"http://www.w3.org/2005/Atom entry,omitempty"`
 	ID            string        `xml:"id,omitempty"`
 	Updated       *time.Time    `xml:"updated,omitempty"`
 	AppProperties []appProperty `xml:"apps:property"`
-	Links         []link        `xml:"link"`
+	Links         []link
 }
 
-func (m *monitorProperties) addProperty(name string, value interface{}) {
+func (m *monitorWriteProperties) addProperty(name string, value interface{}) {
 	if date, ok := value.(*time.Time); ok {
 		value = date.UTC().Format(timeFormat)
 	}
@@ -89,6 +135,7 @@ type appProperty struct {
 }
 
 type link struct {
-	Rel  string `xml:"rel,attr,omitempty"`
-	Href string `xml:"href,attr"`
+	XMLName xml.Name `xml:"link"`
+	Rel     string   `xml:"rel,attr,omitempty"`
+	Href    string   `xml:"href,attr"`
 }
