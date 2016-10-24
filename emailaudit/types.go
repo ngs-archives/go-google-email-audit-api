@@ -3,10 +3,14 @@ package emailaudit
 import (
 	"encoding/xml"
 	"fmt"
+	"strings"
 	"time"
 )
 
-const timeFormat = "2006-01-02 15:04"
+const (
+	timeFormat = "2006-01-02 15:04"
+	urlPrefix  = "https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor"
+)
 
 // MailMonitor MailMonitor
 type MailMonitor struct {
@@ -66,6 +70,11 @@ func (req *MailMonitor) toXML() []byte {
 	return x
 }
 
+// URL returns URL
+func (req *MailMonitor) URL() string {
+	return fmt.Sprintf("%v/%v/%v", urlPrefix, req.DomainName, req.SourceUserName)
+}
+
 func monitorFromXML(data []byte) (*MailMonitor, error) {
 	var v monitorReadProperties
 	if err := xml.Unmarshal(data, &v); err != nil {
@@ -80,6 +89,11 @@ func monitorFromXML(data []byte) (*MailMonitor, error) {
 			m.DestUserName = p.Value
 			break
 		}
+	}
+	if strings.HasPrefix(v.ID, urlPrefix) {
+		urlparts := strings.Split(strings.Replace(v.ID, urlPrefix+"/", "", 1), "/")
+		m.DomainName = urlparts[0]
+		m.SourceUserName = urlparts[1]
 	}
 	return &m, nil
 }

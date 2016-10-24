@@ -32,13 +32,25 @@ func TestMailMonitorToXML(t *testing.T) {
 	}
 }
 
+func TestMailMonitorURL(t *testing.T) {
+	m := MailMonitor{
+		SourceUserName: "src",
+		DomainName:     "example.com",
+	}
+	expected := "https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/src"
+	actual := m.URL()
+	if expected != actual {
+		t.Errorf(`Expected "%v" but got "%v"`, expected, actual)
+	}
+}
+
 func TestMailMonitorFromXML(t *testing.T) {
 	x := `<entry xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
     <id>https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata</id>
     <updated>2009-08-20T00:28:57.319Z</updated>
     <link rel='self' type='application/atom+xml' href="https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata" />
     <link rel='edit' type='application/atom+xml' href="https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata" />
-    <apps:property name="destUserName" value="dest"></apps:property>
+    <apps:property name="destUserName" value="namrata"></apps:property>
     <apps:property name="endDate" value="2016-10-30 14:59"></apps:property>
     <apps:property name="incomingEmailMonitorLevel" value="FULL_MESSAGE"></apps:property>
     <apps:property name="outgoingEmailMonitorLevel" value="FULL_MESSAGE"></apps:property>
@@ -64,8 +76,9 @@ func TestMailMonitorFromXML(t *testing.T) {
 		actual   string
 		expected string
 	}{
-		{m.DestUserName, "dest"},
-		{m.SourceUserName, ""},
+		{m.DestUserName, "namrata"},
+		{m.SourceUserName, "abhishek"},
+		{m.DomainName, "example.com"},
 	} {
 		if test.actual != test.expected {
 			t.Errorf(`Expected "%v" but got "%v"`, test.expected, test.actual)
