@@ -14,10 +14,10 @@ func TestMailMonitorToXML(t *testing.T) {
 		expectedXML string
 	}{
 		{NewMailMonitor("littleapps.co.jp", "src", "dest", &endDate, MailMonitorLevels{}),
-			`<entry xmlns="http://www.w3.org/2005/Atom">
+			`<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:apps="http://schemas.google.com/apps/2006">
   <apps:property name="destUserName" value="dest"></apps:property>
   <apps:property name="endDate" value="2016-10-30 14:59"></apps:property>
-</entry>`},
+</atom:entry>`},
 		{func() MailMonitor {
 			m := NewMailMonitor("littleapps.co.jp", "src", "dest", &endDate, MailMonitorLevels{
 				IncomingEmail: HeaderOnlyLevel,
@@ -27,14 +27,14 @@ func TestMailMonitorToXML(t *testing.T) {
 			})
 			return m
 		}(),
-			`<entry xmlns="http://www.w3.org/2005/Atom">
+			`<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:apps="http://schemas.google.com/apps/2006">
   <apps:property name="destUserName" value="dest"></apps:property>
   <apps:property name="endDate" value="2016-10-30 14:59"></apps:property>
   <apps:property name="incomingEmailMonitorLevel" value="HEADER_ONLY"></apps:property>
   <apps:property name="outgoingEmailMonitorLevel" value="HEADER_ONLY"></apps:property>
   <apps:property name="draftMonitorLevel" value="HEADER_ONLY"></apps:property>
   <apps:property name="chatMonitorLevel" value="HEADER_ONLY"></apps:property>
-</entry>`},
+</atom:entry>`},
 		{func() MailMonitor {
 			m := NewMailMonitor("littleapps.co.jp", "src", "dest", &endDate, MailMonitorLevels{
 				IncomingEmail: FullMessageLevel,
@@ -45,7 +45,7 @@ func TestMailMonitorToXML(t *testing.T) {
 			m.BeginDate = &beginDate
 			return m
 		}(),
-			`<entry xmlns="http://www.w3.org/2005/Atom">
+			`<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:apps="http://schemas.google.com/apps/2006">
   <apps:property name="destUserName" value="dest"></apps:property>
   <apps:property name="endDate" value="2016-10-30 14:59"></apps:property>
   <apps:property name="incomingEmailMonitorLevel" value="FULL_MESSAGE"></apps:property>
@@ -53,7 +53,7 @@ func TestMailMonitorToXML(t *testing.T) {
   <apps:property name="draftMonitorLevel" value="FULL_MESSAGE"></apps:property>
   <apps:property name="chatMonitorLevel" value="FULL_MESSAGE"></apps:property>
   <apps:property name="beginDate" value="2016-08-31 15:00"></apps:property>
-</entry>`},
+</atom:entry>`},
 	} {
 		x := string(test.monitor.toXML())
 		if x != test.expectedXML {

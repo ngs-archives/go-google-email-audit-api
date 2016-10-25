@@ -67,7 +67,10 @@ func (req *MailMonitor) monitorWriteProperties() monitorWriteProperties {
 
 func (req *MailMonitor) toXML() []byte {
 	x, _ := xml.MarshalIndent(req.monitorWriteProperties(), "", "  ")
-	return x
+	xstr := string(x)
+	xstr = strings.Replace(xstr, `<entry xmlns="http://www.w3.org/2005/Atom">`, `<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:apps="http://schemas.google.com/apps/2006">`, 1)
+	xstr = strings.Replace(xstr, `</entry>`, `</atom:entry>`, 1)
+	return []byte(xstr)
 }
 
 // URL returns URL
