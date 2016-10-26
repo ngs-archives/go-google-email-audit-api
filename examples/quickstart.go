@@ -113,14 +113,24 @@ func main() {
 	}
 
 	endDate := time.Date(2116, time.October, 31, 23, 59, 59, 0, time.UTC)
-	r, err := srv.MailMonitor.Update(emailaudit.NewMailMonitor("oneteam.co.jp", "ngs", "kyohei", &endDate, emailaudit.MailMonitorLevels{
+	monitor, err := srv.MailMonitor.Update("oneteam.co.jp", "ngs", "kyohei", endDate, emailaudit.MailMonitorLevels{
 		IncomingEmail: emailaudit.NoneLevel,
 		OutgoingEmail: emailaudit.NoneLevel,
 		Draft:         emailaudit.NoneLevel,
 		Chat:          emailaudit.NoneLevel,
-	}))
+	})
 	if err != nil {
 		log.Fatalf("Unable to update email monitor. %v", err)
 	}
-	fmt.Printf("%v", r)
+	fmt.Printf("%v\n", monitor)
+	monitors, err := srv.MailMonitor.List("oneteam.co.jp", "ngs")
+	if err != nil {
+		log.Fatalf("Unable to list email monitor. %v", err)
+	}
+	for _, m := range monitors {
+		fmt.Printf("%v %v@%v chat:%v draft:%v incoming:%v outgoing:%v\n",
+			m.Updated, m.DestUserName, m.DomainName,
+			m.MonitorLevels.Chat, m.MonitorLevels.Draft,
+			m.MonitorLevels.IncomingEmail, m.MonitorLevels.OutgoingEmail)
+	}
 }

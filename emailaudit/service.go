@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"google.golang.org/api/googleapi"
 )
@@ -50,7 +51,8 @@ func NewMailMonitorService(s *Service) *MailMonitorService {
 // Update creates or updates EmailMonitor
 // - https://developers.google.com/admin-sdk/email-audit/#creating_a_new_email_monitor
 // - https://developers.google.com/admin-sdk/email-audit/#updating_an_email_monitor
-func (svc *MailMonitorService) Update(monitor MailMonitor) (*MailMonitor, error) {
+func (svc *MailMonitorService) Update(domainName string, sourceUserName string, destUserName string, endDate time.Time, monitorLevels MailMonitorLevels) (*MailMonitor, error) {
+	monitor := NewMailMonitor(domainName, sourceUserName, destUserName, endDate, monitorLevels)
 	url := monitor.URL()
 	body := bytes.NewReader(monitor.toXML())
 	req, _ := http.NewRequest("POST", url, body)

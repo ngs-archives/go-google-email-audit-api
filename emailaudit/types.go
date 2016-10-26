@@ -32,12 +32,17 @@ type MailMonitorLevels struct {
 }
 
 // NewMailMonitor returns new MailMonitor
-func NewMailMonitor(domainName string, sourceUserName string, destUserName string, endDate *time.Time, monitorLevels MailMonitorLevels) MailMonitor {
+func NewMailMonitor(domainName string,
+	sourceUserName string,
+	destUserName string,
+	endDate time.Time,
+	monitorLevels MailMonitorLevels,
+) MailMonitor {
 	m := MailMonitor{
 		DomainName:     domainName,
 		SourceUserName: sourceUserName,
 		DestUserName:   destUserName,
-		EndDate:        endDate,
+		EndDate:        &endDate,
 		MonitorLevels:  monitorLevels,
 	}
 	return m
@@ -69,7 +74,8 @@ func (req *MailMonitor) monitorWriteProperties() monitorWriteProperties {
 func (req *MailMonitor) toXML() []byte {
 	x, _ := xml.MarshalIndent(req.monitorWriteProperties(), "", "  ")
 	xstr := string(x)
-	xstr = strings.Replace(xstr, `<entry xmlns="http://www.w3.org/2005/Atom">`, `<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:apps="http://schemas.google.com/apps/2006">`, 1)
+	xstr = strings.Replace(xstr, `<entry xmlns="http://www.w3.org/2005/Atom">`,
+		`<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:apps="http://schemas.google.com/apps/2006">`, 1)
 	xstr = strings.Replace(xstr, `</entry>`, `</atom:entry>`, 1)
 	return []byte(xstr)
 }
@@ -132,6 +138,9 @@ func (m monitorReadProperties) toMonitorLevels() MailMonitorLevels {
 	ret := MailMonitorLevels{}
 	for _, p := range m.AppProperties {
 		l := MailMonitorLevel(p.Value)
+		if p.Value == "NONE" {
+			l = NoneLevel
+		}
 		switch p.Name {
 		case "incomingEmailMonitorLevel":
 			ret.IncomingEmail = l

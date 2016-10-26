@@ -13,7 +13,7 @@ func TestMailMonitorToXML(t *testing.T) {
 		monitor     MailMonitor
 		expectedXML string
 	}{
-		{NewMailMonitor("littleapps.co.jp", "src", "dest", &endDate, MailMonitorLevels{
+		{NewMailMonitor("littleapps.co.jp", "src", "dest", endDate, MailMonitorLevels{
 			IncomingEmail: NoneLevel,
 			OutgoingEmail: NoneLevel,
 			Draft:         NoneLevel,
@@ -24,7 +24,7 @@ func TestMailMonitorToXML(t *testing.T) {
   <apps:property name="endDate" value="2016-10-30 14:59"></apps:property>
 </atom:entry>`},
 		{func() MailMonitor {
-			m := NewMailMonitor("littleapps.co.jp", "src", "dest", &endDate, MailMonitorLevels{
+			m := NewMailMonitor("littleapps.co.jp", "src", "dest", endDate, MailMonitorLevels{
 				IncomingEmail: HeaderOnlyLevel,
 				OutgoingEmail: HeaderOnlyLevel,
 				Draft:         HeaderOnlyLevel,
@@ -41,7 +41,7 @@ func TestMailMonitorToXML(t *testing.T) {
   <apps:property name="chatMonitorLevel" value="HEADER_ONLY"></apps:property>
 </atom:entry>`},
 		{func() MailMonitor {
-			m := NewMailMonitor("littleapps.co.jp", "src", "dest", &endDate, MailMonitorLevels{
+			m := NewMailMonitor("littleapps.co.jp", "src", "dest", endDate, MailMonitorLevels{
 				IncomingEmail: FullMessageLevel,
 				OutgoingEmail: FullMessageLevel,
 				Draft:         FullMessageLevel,
@@ -142,8 +142,8 @@ const monitorsXML = `<?xml version="1.0" encoding="UTF-8"?>
     <apps:property name="endDate" value="2009-06-30 23:20"/>
     <apps:property name="incomingEmailMonitorLevel" value="FULL_MESSAGE"/>
     <apps:property name="outgoingEmailMonitorLevel" value="FULL_MESSAGE"/>
-    <apps:property name="draftMonitorLevel" value="FULL_MESSAGE"/>
-    <apps:property name="chatMonitorLevel" value="FULL_MESSAGE"/>
+    <apps:property name="draftMonitorLevel" value="NONE"/>
+    <apps:property name="chatMonitorLevel" value="NONE"/>
  </entry>
  <entry>
     <id>https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/joe</id>
@@ -168,8 +168,8 @@ func _TestMonitors(m []MailMonitor, t *testing.T) {
 		expected interface{}
 	}{
 		{len(m), 2},
-		{m[0].MonitorLevels.Chat, FullMessageLevel},
-		{m[0].MonitorLevels.Draft, FullMessageLevel},
+		{m[0].MonitorLevels.Chat, NoneLevel},
+		{m[0].MonitorLevels.Draft, NoneLevel},
 		{m[0].MonitorLevels.IncomingEmail, FullMessageLevel},
 		{m[0].MonitorLevels.OutgoingEmail, FullMessageLevel},
 		{m[0].DestUserName, "namrata"},

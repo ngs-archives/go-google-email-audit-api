@@ -56,13 +56,12 @@ func updateEmailMonitor() (*MailMonitor, error) {
 	client := config.Client(ctx, token)
 	svc, _ := New(client)
 	endDate := time.Date(2016, time.October, 30, 14, 59, 0, 0, time.UTC)
-	monitor := NewMailMonitor("example.com", "abhishek", "namrata", &endDate, MailMonitorLevels{
+	return svc.MailMonitor.Update("example.com", "abhishek", "namrata", endDate, MailMonitorLevels{
 		IncomingEmail: HeaderOnlyLevel,
 		OutgoingEmail: HeaderOnlyLevel,
 		Draft:         HeaderOnlyLevel,
 		Chat:          HeaderOnlyLevel,
 	})
-	return svc.MailMonitor.Update(monitor)
 }
 
 func listEmailMonitors() ([]MailMonitor, error) {
