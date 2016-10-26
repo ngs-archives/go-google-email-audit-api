@@ -1,6 +1,6 @@
 # go-google-email-audit-api
 
-[![Build Status](https://travis-ci.org/ngs/go-google-email-audit-api.svg?branch=master)](https://travis-ci.org/ngs/go-google-email-audit-api)  [![GoDoc](https://godoc.org/github.com/ngs/go-google-email-audit-api/emailaudit?status.svg)](https://godoc.org/github.com/ngs/go-google-email-audit-api/emailaudit)
+[![Build Status](https://travis-ci.org/ngs/go-google-email-audit-api.svg?branch=master)](https://travis-ci.org/ngs/go-google-email-audit-api)  [![GoDoc](https://godoc.org/github.com/ngs/go-google-email-audit-api/emailaudit?status.svg)](https://godoc.org/github.com/ngs/go-google-email-audit-api/emailaudit)  [![Go Report Card](https://goreportcard.com/badge/github.com/ngs/go-google-email-audit-api)](https://goreportcard.com/report/github.com/ngs/go-google-email-audit-api)
 
 
 Go Client Library for [Google Email Audit API]
