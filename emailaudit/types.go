@@ -9,7 +9,7 @@ import (
 
 const (
 	timeFormat = "2006-01-02 15:04"
-	urlPrefix  = "https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor"
+	baseURL    = "https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor"
 )
 
 // MailMonitor MailMonitor
@@ -20,6 +20,7 @@ type MailMonitor struct {
 	BeginDate      *time.Time
 	EndDate        *time.Time
 	MonitorLevels  MailMonitorLevels
+	Updated        *time.Time
 }
 
 // MailMonitorLevels MailMonitorLevels
@@ -75,7 +76,7 @@ func (req *MailMonitor) toXML() []byte {
 
 // URL returns URL
 func (req *MailMonitor) URL() string {
-	return fmt.Sprintf("%v/%v/%v", urlPrefix, req.DomainName, req.SourceUserName)
+	return fmt.Sprintf("%v/%v/%v", baseURL, req.DomainName, req.SourceUserName)
 }
 
 func monitorFromXML(data []byte) (*MailMonitor, error) {
@@ -83,22 +84,48 @@ func monitorFromXML(data []byte) (*MailMonitor, error) {
 	if err := xml.Unmarshal(data, &v); err != nil {
 		return nil, err
 	}
-	m := MailMonitor{
-		MonitorLevels: v.toMonitorLevels(),
+	m := v.toMonitor()
+	return &m, nil
+}
+
+func monitorsFromXML(data []byte) ([]MailMonitor, error) {
+	var list monitorReadListProperties
+	var entries []MailMonitor
+	if err := xml.Unmarshal(data, &list); err != nil {
+		return entries, err
 	}
-	for _, p := range v.AppProperties {
+	for _, v := range list.Entries {
+		entries = append(entries, v.toMonitor())
+	}
+	return entries, nil
+}
+
+func (m monitorReadProperties) toMonitor() MailMonitor {
+	mm := MailMonitor{
+		MonitorLevels: m.toMonitorLevels(),
+	}
+	for _, p := range m.AppProperties {
 		switch p.Name {
 		case "destUserName":
-			m.DestUserName = p.Value
+			mm.DestUserName = p.Value
+			break
+		case "beginDate":
+			d, _ := time.Parse(timeFormat, p.Value)
+			mm.BeginDate = &d
+			break
+		case "endDate":
+			d, _ := time.Parse(timeFormat, p.Value)
+			mm.EndDate = &d
 			break
 		}
 	}
-	if strings.HasPrefix(v.ID, urlPrefix) {
-		urlparts := strings.Split(strings.Replace(v.ID, urlPrefix+"/", "", 1), "/")
-		m.DomainName = urlparts[0]
-		m.SourceUserName = urlparts[1]
+	if strings.HasPrefix(m.ID, baseURL) {
+		urlparts := strings.Split(strings.Replace(m.ID, baseURL+"/", "", 1), "/")
+		mm.DomainName = urlparts[0]
+		mm.SourceUserName = urlparts[1]
 	}
-	return &m, nil
+	mm.Updated = m.Updated
+	return mm
 }
 
 func (m monitorReadProperties) toMonitorLevels() MailMonitorLevels {
@@ -123,6 +150,11 @@ func (m monitorReadProperties) toMonitorLevels() MailMonitorLevels {
 	return ret
 }
 
+type monitorReadListProperties struct {
+	XMLName xml.Name                `xml:"http://www.w3.org/2005/Atom feed,omitempty"`
+	Entries []monitorReadProperties `xml:"entry"`
+}
+
 type monitorReadProperties struct {
 	XMLName       xml.Name      `xml:"http://www.w3.org/2005/Atom entry,omitempty"`
 	ID            string        `xml:"id,omitempty"`
@@ -133,10 +165,7 @@ type monitorReadProperties struct {
 
 type monitorWriteProperties struct {
 	XMLName       xml.Name      `xml:"http://www.w3.org/2005/Atom entry,omitempty"`
-	ID            string        `xml:"id,omitempty"`
-	Updated       *time.Time    `xml:"updated,omitempty"`
 	AppProperties []appProperty `xml:"apps:property"`
-	Links         []link
 }
 
 func (m *monitorWriteProperties) addProperty(name string, value interface{}) {

@@ -3,6 +3,7 @@ package emailaudit
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -59,6 +60,20 @@ func (svc *MailMonitorService) Update(monitor MailMonitor) (*MailMonitor, error)
 	if err != nil {
 		return nil, err
 	}
-	bytes, err := ioutil.ReadAll(res.Body)
+	bytes, _ := ioutil.ReadAll(res.Body)
 	return monitorFromXML(bytes)
+}
+
+// List Retrieving all email monitors of a source user
+// - https://developers.google.com/admin-sdk/email-audit/#retrieving_all_email_monitors_of_a_source_user
+func (svc *MailMonitorService) List(domain string, sourceUserName string) ([]MailMonitor, error) {
+	url := fmt.Sprintf("%v/%v/%v", baseURL, domain, sourceUserName)
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Add("User-Agent", svc.s.userAgent())
+	res, err := svc.s.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	bytes, _ := ioutil.ReadAll(res.Body)
+	return monitorsFromXML(bytes)
 }

@@ -114,10 +114,10 @@ func main() {
 
 	endDate := time.Date(2116, time.October, 31, 23, 59, 59, 0, time.UTC)
 	r, err := srv.MailMonitor.Update(emailaudit.NewMailMonitor("oneteam.co.jp", "ngs", "kyohei", &endDate, emailaudit.MailMonitorLevels{
-		IncomingEmail: emailaudit.FullMessageLevel,
-		OutgoingEmail: emailaudit.FullMessageLevel,
-		Draft:         emailaudit.FullMessageLevel,
-		Chat:          emailaudit.FullMessageLevel,
+		IncomingEmail: emailaudit.NoneLevel,
+		OutgoingEmail: emailaudit.NoneLevel,
+		Draft:         emailaudit.NoneLevel,
+		Chat:          emailaudit.NoneLevel,
 	}))
 	if err != nil {
 		log.Fatalf("Unable to update email monitor. %v", err)

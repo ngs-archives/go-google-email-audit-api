@@ -65,6 +65,15 @@ func updateEmailMonitor() (*MailMonitor, error) {
 	return svc.MailMonitor.Update(monitor)
 }
 
+func listEmailMonitors() ([]MailMonitor, error) {
+	ctx := context.Background()
+	config := &oauth2.Config{}
+	token := &oauth2.Token{AccessToken: "test"}
+	client := config.Client(ctx, token)
+	svc, _ := New(client)
+	return svc.MailMonitor.List("example.com", "abhishek")
+}
+
 func TestMailMonitorServiceUpdate(t *testing.T) {
 	defer gock.Off()
 	gock.New("https://apps-apis.google.com").
@@ -73,27 +82,29 @@ func TestMailMonitorServiceUpdate(t *testing.T) {
 		MatchHeader("Authorization", "Bearer test").
 		MatchHeader("User-Agent", "google-api-go-client/0.5").
 		Reply(200).
-		XML(`<entry xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
-     <id>https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata</id>
-     <updated>2009-08-20T00:28:57.319Z</updated>
-     <link rel='self' type='application/atom+xml' href="https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata" />
-     <link rel='edit' type='application/atom+xml' href="https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata" />
-     <apps:property name="destUserName" value="namrata"></apps:property>
-     <apps:property name="endDate" value="2016-10-30 14:59"></apps:property>
-     <apps:property name="incomingEmailMonitorLevel" value="FULL_MESSAGE"></apps:property>
-     <apps:property name="outgoingEmailMonitorLevel" value="FULL_MESSAGE"></apps:property>
-     <apps:property name="draftMonitorLevel" value="FULL_MESSAGE"></apps:property>
-     <apps:property name="chatMonitorLevel" value="FULL_MESSAGE"></apps:property>
-     <apps:property name="beginDate" value="2016-08-31 15:00"></apps:property>
-   </entry>`)
+		XML(monitorXML)
 
 	monitor2, err := updateEmailMonitor()
 	if err != nil {
 		t.Errorf("Expected nil but got %v", err)
 	}
-	if monitor2 == nil {
-		t.Error("Expected not nil but got nil")
+	_TestMonitor(monitor2, t)
+}
+
+func TestMailMonitorServiceList(t *testing.T) {
+	defer gock.Off()
+	gock.New("https://apps-apis.google.com").
+		Get("/a/feeds/compliance/audit/mail/monitor/example.com/abhishek").
+		MatchHeader("Authorization", "Bearer test").
+		MatchHeader("User-Agent", "google-api-go-client/0.5").
+		Reply(200).
+		XML(monitorsXML)
+
+	m, err := listEmailMonitors()
+	if err != nil {
+		t.Errorf("Expected nil but got %v", err)
 	}
+	_TestMonitors(m, t)
 }
 
 func TestMailMonitorServiceUpdateHTTPError(t *testing.T) {
@@ -107,6 +118,24 @@ func TestMailMonitorServiceUpdateHTTPError(t *testing.T) {
 
 	monitor2, err := updateEmailMonitor()
 	expected := "Post https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek: Error!"
+	if err.Error() != expected {
+		t.Errorf(`Expected "%v" but got "%v"`, expected, err)
+	}
+	if monitor2 != nil {
+		t.Errorf("Expected nil but got %v", monitor2)
+	}
+}
+
+func TestMailMonitorServiceListHTTPError(t *testing.T) {
+	defer gock.Off()
+	gock.New("https://apps-apis.google.com").
+		Get("/a/feeds/compliance/audit/mail/monitor/example.com/abhishek").
+		MatchHeader("Authorization", "Bearer test").
+		MatchHeader("User-Agent", "google-api-go-client/0.5").
+		ReplyError(errors.New("Error!"))
+
+	monitor2, err := listEmailMonitors()
+	expected := "Get https://apps-apis.google.com/a/feeds/compliance/audit/mail/monitor/example.com/abhishek: Error!"
 	if err.Error() != expected {
 		t.Errorf(`Expected "%v" but got "%v"`, expected, err)
 	}

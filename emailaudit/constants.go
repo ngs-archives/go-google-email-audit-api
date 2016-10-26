@@ -9,6 +9,8 @@ const (
 type MailMonitorLevel string
 
 const (
+	// NoneLevel HEADER_ONLY
+	NoneLevel MailMonitorLevel = ""
 	// HeaderOnlyLevel HEADER_ONLY
 	HeaderOnlyLevel MailMonitorLevel = "HEADER_ONLY"
 	// FullMessageLevel FULL_MESSAGE
