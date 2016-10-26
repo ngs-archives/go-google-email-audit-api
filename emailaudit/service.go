@@ -63,6 +63,9 @@ func (svc *MailMonitorService) Update(domainName string, sourceUserName string, 
 		return nil, err
 	}
 	bytes, _ := ioutil.ReadAll(res.Body)
+	if !(res.StatusCode >= 200 && res.StatusCode < 300) {
+		return nil, errors.New(string(bytes))
+	}
 	return monitorFromXML(bytes)
 }
 
@@ -77,5 +80,25 @@ func (svc *MailMonitorService) List(domain string, sourceUserName string) ([]Mai
 		return nil, err
 	}
 	bytes, _ := ioutil.ReadAll(res.Body)
+	if !(res.StatusCode >= 200 && res.StatusCode < 300) {
+		return nil, errors.New(string(bytes))
+	}
 	return monitorsFromXML(bytes)
+}
+
+// Disable Deleting an email monitor
+// - https://developers.google.com/admin-sdk/email-audit/#deleting_an_email_monitor
+func (svc *MailMonitorService) Disable(domain string, sourceUserName string, destUserName string) error {
+	url := fmt.Sprintf("%v/%v/%v/%v", baseURL, domain, sourceUserName, destUserName)
+	req, _ := http.NewRequest("DELETE", url, nil)
+	req.Header.Add("User-Agent", svc.s.userAgent())
+	res, err := svc.s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	bytes, err := ioutil.ReadAll(res.Body)
+	if !(res.StatusCode >= 200 && res.StatusCode < 300) {
+		return errors.New(string(bytes))
+	}
+	return err
 }

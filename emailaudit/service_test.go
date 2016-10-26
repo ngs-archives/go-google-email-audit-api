@@ -73,6 +73,15 @@ func listEmailMonitors() ([]MailMonitor, error) {
 	return svc.MailMonitor.List("example.com", "abhishek")
 }
 
+func disableEmailMonitors() error {
+	ctx := context.Background()
+	config := &oauth2.Config{}
+	token := &oauth2.Token{AccessToken: "test"}
+	client := config.Client(ctx, token)
+	svc, _ := New(client)
+	return svc.MailMonitor.Disable("example.com", "abhishek", "namrata")
+}
+
 func TestMailMonitorServiceUpdate(t *testing.T) {
 	defer gock.Off()
 	gock.New("https://apps-apis.google.com").
@@ -104,6 +113,20 @@ func TestMailMonitorServiceList(t *testing.T) {
 		t.Errorf("Expected nil but got %v", err)
 	}
 	_TestMonitors(m, t)
+}
+
+func TestMailMonitorServiceDisable(t *testing.T) {
+	defer gock.Off()
+	gock.New("https://apps-apis.google.com").
+		Delete("/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata").
+		MatchHeader("Authorization", "Bearer test").
+		MatchHeader("User-Agent", "google-api-go-client/0.5").
+		Reply(200)
+
+	err := disableEmailMonitors()
+	if err != nil {
+		t.Errorf("Expected nil but got %v", err)
+	}
 }
 
 func TestMailMonitorServiceUpdateHTTPError(t *testing.T) {
@@ -140,5 +163,75 @@ func TestMailMonitorServiceListHTTPError(t *testing.T) {
 	}
 	if monitor2 != nil {
 		t.Errorf("Expected nil but got %v", monitor2)
+	}
+}
+
+func TestMailMonitorServiceDisableHTTPError(t *testing.T) {
+	defer gock.Off()
+	gock.New("https://apps-apis.google.com").
+		Delete("/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata").
+		MatchHeader("Authorization", "Bearer test").
+		MatchHeader("User-Agent", "google-api-go-client/0.5").
+		ReplyError(errors.New("Error!"))
+
+	expected := "Error!"
+	err := disableEmailMonitors()
+	if err.Error() != expected {
+		t.Errorf(`Expected "%v" but got "%v"`, expected, err)
+	}
+}
+
+func TestMailMonitorServiceUpdateHTTPErrorResponse(t *testing.T) {
+	defer gock.Off()
+	gock.New("https://apps-apis.google.com").
+		Post("/a/feeds/compliance/audit/mail/monitor/example.com/abhishek").
+		MatchType("application/atom\\+xml").
+		MatchHeader("Authorization", "Bearer test").
+		MatchHeader("User-Agent", "google-api-go-client/0.5").
+		Reply(400).
+		BodyString("Omg")
+
+	monitor2, err := updateEmailMonitor()
+	expected := "Omg"
+	if err.Error() != expected {
+		t.Errorf(`Expected "%v" but got "%v"`, expected, err)
+	}
+	if monitor2 != nil {
+		t.Errorf("Expected nil but got %v", monitor2)
+	}
+}
+
+func TestMailMonitorServiceListHTTPErrorResponse(t *testing.T) {
+	defer gock.Off()
+	gock.New("https://apps-apis.google.com").
+		Get("/a/feeds/compliance/audit/mail/monitor/example.com/abhishek").
+		MatchHeader("Authorization", "Bearer test").
+		MatchHeader("User-Agent", "google-api-go-client/0.5").
+		Reply(400).
+		BodyString("Omg")
+
+	monitor2, err := listEmailMonitors()
+	expected := "Omg"
+	if err.Error() != expected {
+		t.Errorf(`Expected "%v" but got "%v"`, expected, err)
+	}
+	if monitor2 != nil {
+		t.Errorf("Expected nil but got %v", monitor2)
+	}
+}
+
+func TestMailMonitorServiceDisableHTTPErrorResponse(t *testing.T) {
+	defer gock.Off()
+	gock.New("https://apps-apis.google.com").
+		Delete("/a/feeds/compliance/audit/mail/monitor/example.com/abhishek/namrata").
+		MatchHeader("Authorization", "Bearer test").
+		MatchHeader("User-Agent", "google-api-go-client/0.5").
+		Reply(400).
+		BodyString("Omg")
+
+	expected := "Omg"
+	err := disableEmailMonitors()
+	if err.Error() != expected {
+		t.Errorf(`Expected "%v" but got "%v"`, expected, err)
 	}
 }

@@ -114,8 +114,8 @@ func main() {
 
 	endDate := time.Date(2116, time.October, 31, 23, 59, 59, 0, time.UTC)
 	monitor, err := srv.MailMonitor.Update("oneteam.co.jp", "ngs", "kyohei", endDate, emailaudit.MailMonitorLevels{
-		IncomingEmail: emailaudit.NoneLevel,
-		OutgoingEmail: emailaudit.NoneLevel,
+		IncomingEmail: emailaudit.HeaderOnlyLevel,
+		OutgoingEmail: emailaudit.HeaderOnlyLevel,
 		Draft:         emailaudit.NoneLevel,
 		Chat:          emailaudit.NoneLevel,
 	})
@@ -124,6 +124,20 @@ func main() {
 	}
 	fmt.Printf("%v\n", monitor)
 	monitors, err := srv.MailMonitor.List("oneteam.co.jp", "ngs")
+	if err != nil {
+		log.Fatalf("Unable to list email monitor. %v", err)
+	}
+	for _, m := range monitors {
+		fmt.Printf("%v %v@%v chat:%v draft:%v incoming:%v outgoing:%v\n",
+			m.Updated, m.DestUserName, m.DomainName,
+			m.MonitorLevels.Chat, m.MonitorLevels.Draft,
+			m.MonitorLevels.IncomingEmail, m.MonitorLevels.OutgoingEmail)
+	}
+	err = srv.MailMonitor.Disable("oneteam.co.jp", "ngs", "kyohei")
+	if err != nil {
+		log.Fatalf("Unable to disable email monitor. %v", err)
+	}
+	monitors, err = srv.MailMonitor.List("oneteam.co.jp", "ngs")
 	if err != nil {
 		log.Fatalf("Unable to list email monitor. %v", err)
 	}
