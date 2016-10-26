@@ -1,11 +1,12 @@
 package emailaudit
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"golang.org/x/oauth2"
 
